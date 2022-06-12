@@ -73,6 +73,7 @@ def visualize(df):
 st.set_page_config(
      page_title="Binance Chart",
      layout="wide",
+     page_icon="📈",
      initial_sidebar_state="expanded")
 
 
@@ -82,8 +83,6 @@ with st.sidebar.form(key ='data_options'):
     coin = st.selectbox('coin', COINS)
     interval = st.selectbox("interval", ('1m', '5m', '1d', '1w', '1M'))
     limit = st.text_input('limit')
-    print(coin, interval, limit)
-    # Every form must have a submit button.
     submitted = st.form_submit_button("Submit")
 
 
