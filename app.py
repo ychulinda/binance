@@ -1,3 +1,4 @@
+from turtle import width
 import pandas as pd
 import requests
 import plotly.graph_objects as go
@@ -33,40 +34,58 @@ def candles(symbol, interval, limit):
 
     for column in df.columns:
         df[column] = df[column].astype(float)
+
+    df['roe'] = df.apply(lambda x: ((x.high - x.low) / x.low) * 100, axis=1)
+    df['prev_open'] = df['open'].shift(1)
+    df['roe'] = df.apply(lambda x: -x.roe if x.close < x.prev_open else x.roe, axis=1)
+    df['cumroe'] = df['roe'].cumsum()
     return df
 
 
 def visualize(df):
       
-      colors = ['green' if row['open'] - row['close'] >= 0
-          else 'red' for index, row in df.iterrows()]
+    colors = ['green' if row['open'] - row['close'] >= 0
+        else 'red' for index, row in df.iterrows()]
 
 
-      fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                    vertical_spacing=0.01,
-                    row_heights=[0.5, 0.2])
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                vertical_spacing=0.01,
+                row_heights=[0.5, 0.2])
 
 
-      fig.add_trace(go.Candlestick(x=df.index,
-                             open=df['open'], high=df['high'],
-                             low=df['low'], close=df['close'], name='candles'))
+    fig.add_trace(go.Candlestick(x=df.index,
+                            open=df['open'], high=df['high'],
+                            low=df['low'], close=df['close'], name='candles'))
 
 
-      fig.add_trace(go.Bar(x=df.index,
-                     y=df['volume'],
-                     marker_color=colors,
-                     name='Volume'),
-              row=2, col=1)
+    fig.add_trace(go.Bar(x=df.index,
+                    y=df['volume'],
+                    marker_color=colors,
+                    name='Volume'),
+            row=2, col=1)
 
 
-      fig.update_layout(
-            yaxis_title='Stock Price ($)',
-            xaxis_title='Time(utc+3)',
-            xaxis_rangeslider_visible=False, template='plotly_dark')
+    fig.update_layout(
+        yaxis_title='Stock Price ($)',
+        xaxis_title='Time(utc+3)',
+        xaxis_rangeslider_visible=True, template='plotly_dark')
 
-      fig.update_yaxes(title_text="Volume", row=2, col=1)
+    fig.update_yaxes(title_text="Volume", row=2, col=1)
 
-      st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
+
+
+    f = go.Figure(go.Scatter(x=df.index, y=df['cumroe'], line=dict(
+                color='#D7311B', width=3), name='cumroe'))
+    # f.update_traces(mode='markers', marker_line_width=2, marker=dict(
+    #         size=6,
+    #         color=df['cumroe'], 
+    #         colorscale='reds', 
+    #         showscale=True
+    #     ))
+    f.update_layout(title='ROE',
+                    yaxis_zeroline=False, xaxis_zeroline=False, xaxis_rangeslider_visible=True)
+    st.plotly_chart(f, use_container_width=True)
 
 
 
