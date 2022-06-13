@@ -1,4 +1,3 @@
-from turtle import width
 import pandas as pd
 import requests
 import plotly.graph_objects as go
