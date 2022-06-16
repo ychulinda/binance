@@ -36,58 +36,41 @@ def candles(symbol, interval, limit):
 
     df['roe'] = df.apply(lambda x: ((x.high - x.low) / x.low) * 100, axis=1)
     df['prev_open'] = df['open'].shift(1)
-    df['roe'] = df.apply(lambda x: -x.roe if x.close < x.prev_open else x.roe, axis=1)
+    df['roe'] = df.apply(lambda x: -x.roe if x.open - x.close >= 0 else x.roe, axis=1)
     df['cumroe'] = df['roe'].cumsum()
     return df
 
 
-def visualize(df):
+def visualize(df, coin):
       
-    colors = ['green' if row['open'] - row['close'] >= 0
-        else 'red' for index, row in df.iterrows()]
+    colors = ['red' if row['open'] - row['close'] >= 0
+        else 'green' for index, row in df.iterrows()]
 
 
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                vertical_spacing=0.01,
-                row_heights=[0.5, 0.2])
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True,
+                vertical_spacing=0.03, 
+                row_heights=[0.40, 0.40, 0.20])  
 
 
-    fig.add_trace(go.Candlestick(x=df.index,
-                            open=df['open'], high=df['high'],
-                            low=df['low'], close=df['close'], name='candles'))
-
-
-    fig.add_trace(go.Bar(x=df.index,
-                    y=df['volume'],
-                    marker_color=colors,
-                    name='Volume'),
-            row=2, col=1)
-
+    fig.add_trace(go.Candlestick(x=df.index, open=df['open'], high=df['high'], low=df['low'], close=df['close'], name=coin))
+    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#D7311B', width=3), name='ROE'), row=2, col=1)
+    fig.update_yaxes(title_text="ROE (%)", row=2, col=1)
+    fig.add_trace(go.Bar(x=df.index, y=df['volume'], opacity=0.5, marker_color=colors, name='Volume'), row=3, col=1)
+    fig.update_yaxes(title_text="Volume", row=3, col=1)
 
     fig.update_layout(
+        height=750,
         yaxis_title='Stock Price ($)',
-        xaxis_title='Time(utc+3)',
-        xaxis_rangeslider_visible=True, template='plotly_dark')
-
-    fig.update_yaxes(title_text="Volume", row=2, col=1)
+        xaxis_rangeslider_visible=True, 
+        xaxis_rangeslider_thickness=0.01,
+        xaxis_rangeslider_bgcolor='#902416',
+        template='plotly_dark',
+        legend=dict( orientation="h", yanchor="bottom", y=1.0, xanchor="right", x=1 ) # !!
+        )
 
     st.plotly_chart(fig, use_container_width=True)
 
-
-    f = go.Figure(go.Scatter(x=df.index, y=df['cumroe'], line=dict(
-                color='#D7311B', width=3), name='cumroe'))
-    # f.update_traces(mode='markers', marker_line_width=2, marker=dict(
-    #         size=6,
-    #         color=df['cumroe'], 
-    #         colorscale='reds', 
-    #         showscale=True
-    #     ))
-    f.update_layout(title='ROE',
-                    yaxis_zeroline=False, xaxis_zeroline=False, xaxis_rangeslider_visible=True)
-    st.plotly_chart(f, use_container_width=True)
-
-
-
+  
 st.set_page_config(
      page_title="Binance Chart",
      layout="wide",
@@ -99,11 +82,11 @@ st.set_page_config(
 with st.sidebar.form(key ='data_options'):
     st.write("Options")
     coin = st.selectbox('coin', COINS)
-    interval = st.selectbox("interval", ('1m', '5m', '1d', '1w', '1M'))
-    limit = st.text_input('limit')
+    interval = st.selectbox("interval", ('1m', '5m', '15m', '1h', '1d', '1w', '1M'))
+    limit = st.selectbox("limit", ('60', '300', '600', '1200', '1500')) 
     submitted = st.form_submit_button("Submit")
 
 
 if submitted:
     df = candles(coin, interval, int(limit))
-    visualize(df)
+    visualize(df, coin)
