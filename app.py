@@ -49,14 +49,14 @@ def visualize(df, coin):
 
     fig = make_subplots(rows=3, cols=1, shared_xaxes=True,
                 vertical_spacing=0.03, 
-                row_heights=[0.40, 0.40, 0.20])  
+                row_heights=[0.40, 0.20, 0.40])  
 
 
     fig.add_trace(go.Candlestick(x=df.index, open=df['open'], high=df['high'], low=df['low'], close=df['close'], name=coin))
-    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#D7311B', width=3), name='ROE'), row=3, col=1)
-    fig.update_yaxes(title_text="ROE (%)", row=2, col=1)
-    fig.add_trace(go.Bar(x=df.index, y=df['volume'], opacity=0.5, marker_color=colors, name='Volume'), row=2, col=1)
-    fig.update_yaxes(title_text="Volume", row=3, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#D7311B', width=3), name='Volume'), row=3, col=1)
+    fig.update_yaxes(title_text="Volume", row=2, col=1)
+    fig.add_trace(go.Bar(x=df.index, y=df['volume'], opacity=0.5, marker_color=colors, name='ROE'), row=2, col=1)
+    fig.update_yaxes(title_text="ROE (%)", row=3, col=1)
 
     fig.update_layout(
         height=750,
@@ -65,7 +65,7 @@ def visualize(df, coin):
         xaxis_rangeslider_thickness=0.01,
         xaxis_rangeslider_bgcolor='#902416',
         template='plotly_dark',
-        legend=dict( orientation="h", yanchor="bottom", y=1.0, xanchor="right", x=1 ) # !!
+        legend=dict( orientation="h", yanchor="bottom", y=1.0, xanchor="right", x=1 ) 
         )
 
     st.plotly_chart(fig, use_container_width=True)
