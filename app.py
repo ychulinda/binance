@@ -87,16 +87,18 @@ with st.sidebar.form(key ='coin_chart_options'):
     coin_chart_button = st.form_submit_button("Submit")
 
 
+if coin_chart_button:
+    df = candles(coin, interval, int(limit))
+    visualize(df, coin)
+
+
+
 with st.sidebar.form(key ='top_coins_charts'):
     st.write("Top coins")
     interval = st.selectbox("interval", ('1m', '5m', '15m', '1h', '1d', '1w', '1M'))
     limit = st.selectbox("limit", ('60', '300', '600', '1200', '1500')) 
     top_coins_button = st.form_submit_button("Submit")
 
-
-if coin_chart_button:
-    df = candles(coin, interval, int(limit))
-    visualize(df, coin)
 
 
 if top_coins_button:
