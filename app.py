@@ -53,9 +53,9 @@ def visualize(df, coin):
 
 
     fig.add_trace(go.Candlestick(x=df.index, open=df['open'], high=df['high'], low=df['low'], close=df['close'], name=coin))
-    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#D7311B', width=3), name='ROE'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#D7311B', width=3), name='ROE'), row=3, col=1)
     fig.update_yaxes(title_text="ROE (%)", row=2, col=1)
-    fig.add_trace(go.Bar(x=df.index, y=df['volume'], opacity=0.5, marker_color=colors, name='Volume'), row=3, col=1)
+    fig.add_trace(go.Bar(x=df.index, y=df['volume'], opacity=0.5, marker_color=colors, name='Volume'), row=2, col=1)
     fig.update_yaxes(title_text="Volume", row=3, col=1)
 
     fig.update_layout(
