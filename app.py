@@ -45,7 +45,7 @@ def candles(symbol, interval, limit):
     return df
 
 
-def visualize(df, coin):
+def visualize(df, coin, first_chart):
       
     colors = ['red' if row['open'] - row['close'] >= 0
         else 'green' for index, row in df.iterrows()]
@@ -82,12 +82,11 @@ def visualize(df, coin):
         legend=dict( orientation="h", yanchor="bottom", y=1.0, xanchor="right", x=1 ) 
         )
 
+    if first_chart:
+        placeholder.plotly_chart(fig, use_container_width=True)
 
-    
-
-    
-
-    st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.plotly_chart(fig, use_container_width=True)
 
   
 st.set_page_config(
@@ -104,11 +103,18 @@ with st.sidebar.form(key ='coin_chart_options'):
     interval = st.selectbox("interval", ('1m', '5m', '15m', '1h', '1d', '1w', '1M'))
     limit = st.selectbox("limit", ('60', '300', '600', '1200', '1500')) 
     coin_chart_button = st.form_submit_button("Submit")
+    
 
+
+placeholder = st.empty()
+
+df = candles(coin, interval, int(limit))
+visualize(df, coin, True)
 
 if coin_chart_button:
-    df = candles(coin, interval, int(limit))
-    visualize(df, coin)
+    with placeholder.container():
+        df = candles(coin, interval, int(limit))
+        visualize(df, coin, False)
 
 
 
@@ -124,30 +130,30 @@ if top_coins_button:
 
     d = {'coin':[], 'value':[]}
 
+    with placeholder.container():
+        with st.spinner('Calculation...'):
 
-    with st.spinner('Calculation...'):
+            for pos, coin in enumerate(COINS):
 
-        for pos, coin in enumerate(COINS):
+                df = candles(f'{coin}', '1d', 180)
+                
+                coin_min = df['close'].min()
 
-            df = candles(f'{coin}', '1d', 180)
+                coin_max = df['close'].max()
+
+                coin_now = df['close'].iloc[-1]
+
+                d['value'].append(round(((coin_now - coin_min) / (coin_max - coin_min)) * 100, 2))
+
+                d['coin'].append(coin)
+
             
-            coin_min = df['close'].min()
 
-            coin_max = df['close'].max()
+        df = pd.DataFrame(d)
 
-            coin_now = df['close'].iloc[-1]
+        top_coins = df.sort_values(ascending=False, by='value').head(3)['coin'].to_list()
 
-            d['value'].append(round(((coin_now - coin_min) / (coin_max - coin_min)) * 100, 2))
-
-            d['coin'].append(coin)
-
-        
-
-    df = pd.DataFrame(d)
-
-    top_coins = df.sort_values(ascending=False, by='value').head(3)['coin'].to_list()
-
-    for coin in top_coins:
-        st.markdown(f'**{coin}**')
-        df = candles(coin, interval, int(limit))
-        visualize(df, coin)
+        for coin in top_coins:
+            st.markdown(f'**{coin}**')
+            df = candles(coin, interval, int(limit))
+            visualize(df, coin, False)
