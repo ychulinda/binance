@@ -34,14 +34,17 @@ def candles(symbol, interval, limit):
     for column in df.columns:
         df[column] = df[column].astype(float)
 
-    df['roe'] = df.apply(lambda x: ((x.high - x.low) / x.low) * 100, axis=1)
-    df['prev_open'] = df['open'].shift(1)
-    df['roe'] = df.apply(lambda x: -x.roe if x.open - x.close >= 0 else x.roe, axis=1)
+    df['roe'] = df.apply(lambda x: ((x.close - x.open) / x.open) * 100, axis=1) 
     df['cumroe'] = df['roe'].cumsum()
     df['EMA50'] = df['close'].ewm(span=50, adjust=False).mean()
     df['EMA20'] = df['close'].ewm(span=20, adjust=False).mean()
     df['EMA7'] = df['close'].ewm(span=7, adjust=False).mean()
 
+
+    df['roe_low'] = df.apply(lambda x:  
+        x.cumroe - (((x.close - x.low) / x.open) * 100) if x.close < x.open else x.cumroe - (((x.open - x.low) / x.open) * 100), axis=1)
+    df['roe_high'] = df.apply(lambda x: 
+        x.cumroe + (((x.high - x.open) / x.open) * 100) if x.close < x.open else x.cumroe + (((x.high - x.close) / x.open) * 100), axis=1)
     return df
 
 
@@ -57,7 +60,7 @@ def visualize(df, coin, first_chart):
 
 
     fig.add_trace(go.Candlestick(x=df.index, open=df['open'], high=df['high'], low=df['low'], close=df['close'], name=coin))
-    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#D7311B', width=3), name='ROE (%)'), row=3, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['cumroe'], line=dict(color='#09b683', width=3), name='ROE (%)'), row=3, col=1)
     fig.update_yaxes(title_text="Volume", row=2, col=1)
     fig.add_trace(go.Bar(x=df.index, y=df['volume'], opacity=0.5, marker_color=colors, name='Volume'), row=2, col=1)
     fig.update_yaxes(title_text="ROE (%)", row=3, col=1)
@@ -71,6 +74,12 @@ def visualize(df, coin, first_chart):
 
     fig.add_trace(go.Scatter(x=df.index, y=df['EMA7'], line=dict(
                    color='#ffa226'), name='EMA7'), row=1, col=1)
+
+    fig.add_trace(go.Scatter(x=df.index, y=df['roe_low'], line=dict(
+                    color='#ace5ee'), name='low'), row=3, col=1)\
+
+    fig.add_trace(go.Scatter(x=df.index, y=df['roe_high'], line=dict(
+                    color='#aa0905'), name='high'), row=3, col=1)
 
     fig.update_layout(
         height=750,
