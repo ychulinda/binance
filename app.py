@@ -21,9 +21,7 @@ COINS = set(["1000shibusdt","1000xecusdt","1inchusdt","aaveusdt","adausdt","algo
 
 
 def candles(symbol, interval, limit):
-    url = 'https://fapi.binance.com/fapi/v1/klines'
-    params = {'symbol': symbol, 'interval': interval, 'limit': limit}
-    r = requests.get(url, params=params)
+    r = requests.get(f'https://api.binance.us/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}')
     df = pd.DataFrame(r.json())
     df = df[[0, 1, 2, 3, 4, 5]]
     df.columns = ['date', 'open', 'high', 'low', 'close', 'volume']
