@@ -115,11 +115,4 @@ if coin_chart_button:
 
             
 
-        df = pd.DataFrame(d)
-
-        top_coins = df.sort_values(ascending=False, by='value').head(3)['coin'].to_list()
-
-        for coin in top_coins:
-            st.markdown(f'**{coin}**')
-            df = candles(coin, interval, int(limit))
-            visualize(df, coin, False)
+  
